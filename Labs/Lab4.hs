@@ -60,7 +60,24 @@ lines' [] = []
 lines' (x:xs) = getStringTillEol (x:xs) : lines' (tail(mysubst xs (getStringTillEol xs)))
 
 
-main = do
-    print (insert' 4 [3,5,1,2,8,2])
-    print (partition' (<5) [1..12])
-    print (lines' "lolxd\ntestXd\n")
+-- main = do
+--     putStrLn "-----insert-----"
+--     print (insert' 4 [3,5,1,2,8,2])
+--     print (insert' 4 [1,3,4,4,1])
+--     print (insert' 3 [1,2,4,3,2,1])
+--     putStrLn "-----union-----"
+--     print ([1..7] `union'` [5..10])
+--     print ([5..12] `union'` [2..8])
+--     print ([1..3] `union'` [2..6])
+--     putStrLn "-----intersect-----"
+--     print ([1..7] `intersect'` [5..10])
+--     print ([5..12] `intersect'` [2..8])
+--     print ([1..3] `intersect'` [2..6])
+--     putStrLn "-----partition-----"
+--     print (partition' (>3) [1,3,5,6,3,2,1,0,3,7])
+--     print (partition' (odd) [1..11])
+--     print (partition' (<2) [2..6])
+--     putStrLn "-----lines-----"
+--     print (lines' "hello\nagain\n")
+--     print (lines' "word\ntestx\n")
+--     print (lines' "good\nluck\n")
