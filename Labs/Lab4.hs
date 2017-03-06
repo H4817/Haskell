@@ -1,3 +1,17 @@
+mysubst :: Eq a => [a] -> [a] -> [a]
+mysubst [] _ = []
+mysubst _ [] = []
+mysubst (x:xs) list
+    | ((all (x/=) list)) = x : mysubst xs list
+    | otherwise = mysubst xs list
+
+
+getStringTillEol :: String -> String
+getStringTillEol [] = []
+getStringTillEol (x:xs)
+    | (x /= '\n') = x : getStringTillEol xs
+    | otherwise = []
+
 
 removeDuplicates :: Eq a => [a] -> [a]
 removeDuplicates [] = []
@@ -6,19 +20,26 @@ removeDuplicates (x:xs)
     | otherwise = removeDuplicates xs
 
 
-insert' :: Ord a => a -> [a] -> [a]
+
+
+
+-- will start at the beginning of the list and then keep going until it finds an element that's equal to
+-- or greater than the element that we're inserting and it will insert it just before the element.
+insert' :: Ord a => a -> [a] -> [a] 
 insert' a [] = [a]
 insert' a (x:xs) 
     | (x >= a) = a : x : xs
     | otherwise = x : insert' a xs
 
 
+-- concatenate two lists then remove duplicates
 union' :: Eq a => [a] -> [a] -> [a]
 union' [] _ = []
 union' _ [] = []
 union' list1 list2 = removeDuplicates (list1 ++ list2)
 
 
+-- it returns only the elements that are found in both lists.
 intersect' :: Eq a => [a] -> [a] -> [a]
 intersect' [] _ = []
 intersect' _ [] = []
@@ -27,33 +48,19 @@ intersect' (x:xs) list
     | otherwise = intersect' xs list
 
 
+-- takes a list and a predicate and returns a pair of lists. The first list in the result contains
+-- all the elements that satisfy the predicate, the second contains all the ones that don't.
 partition' :: (a -> Bool) -> [a] -> ([a],[a])
 partition' p list = (filter p list, filter (not . p) list)
 
 
-lines' :: String -> [ String ]
+-- it takes a string and returns every line of that string in a separate list.
+lines' :: String -> [String] 
 lines' [] = []
-lines' (x:xs)
-    | (x == '\n') = (lines' xs)
-    | otherwise = [x] : lines' xs
-
-position :: Eq a => [a] -> a -> Int
-position [] _ = 0
-position (x:xs) atom 
-    | (x /= atom) = 1 + position xs atom
-    | otherwise = 0
-
-
-elemIndices' :: Eq a => a -> [a] -> [Int]
-elemIndices' _ [] = []
-elemIndices' atom (x:xs) 
-    | (x /= atom) = elemIndices' atom xs
-    | otherwise = (elemIndices' atom (drop (position xs atom) xs)) ++ []
-
+lines' (x:xs) = getStringTillEol (x:xs) : lines' (tail(mysubst xs (getStringTillEol xs)))
 
 
 main = do
     print (insert' 4 [3,5,1,2,8,2])
     print (partition' (<5) [1..12])
     print (lines' "lolxd\ntestXd\n")
-    print (elemIndices' 4 [1,2,3,4,4,5,6,3,4])
