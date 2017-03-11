@@ -1,5 +1,4 @@
 import System.IO
-import Data.Char ( toUpper )
 import System.Environment   
 
 
@@ -8,26 +7,27 @@ copyFile h1 h2 = do
     if eof then return () else
         do
             c <- hGetChar h1
-            hPutChar h2 (toUpper c)   
+            hPutChar h2 (c)   
             copyFile h1 h2
 
 
 replacePunctuationMarks :: Char -> Char -> Char
 replacePunctuationMarks replaceBy inputChar
-    | (any (inputChar==) [',',':',';','"','!','?','#','@','-','+','\'']) = replaceBy
+    | (any (inputChar==) [',',';',':','.','!','?','`','\'','"','-','—','/','(',')','[',']','*']) = replaceBy
     | otherwise = inputChar
 
 
 copyFileAndReplacePunctuationMarks :: String -> String -> IO ()
-copyFileAndReplacePunctuationMarks f1 f2 = putStrLn "Hello, enter symbol for replace punctuation marks: " >>
-           getChar >>= \symbol ->
-           putChar symbol
+copyFileAndReplacePunctuationMarks inputFile outputFile = 
+    do
+        putStrLn "Hello, enter symbol for replace punctuation marks: "
+        replaceBy <- getChar
+        s <- readFile inputFile
+        writeFile outputFile (map (replacePunctuationMarks replaceBy) s)
 
 
 
 main = do
-         putStrLn "Hello, enter symbol for replace punctuation marks: "
-         replaceBy <- getChar
-         s <- readFile "in.txt"
-         writeFile "out.txt" (map (replacePunctuationMarks replaceBy) s)
+           [inp, out] <- getArgs 
+           copyFileAndReplacePunctuationMarks inp out
 
