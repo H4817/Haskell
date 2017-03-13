@@ -1,65 +1,59 @@
-import System.IO
-import qualified Data.ByteString as Str
-import Data.Char
 import System.Environment   
 import System.Directory  
+import System.IO  
 import Data.List  
--- get content +-
--- append 
--- delete concrete line
--- copy file with filter
+import Data.Char  
+import Control.Monad
+  
+dispatch :: [(String, [String] -> IO ())]  
+dispatch =  [ ("add", add)  
+            , ("view", view)  
+            , ("remove", remove)  
+            , ("copyWithFilter", copyWithFilter)  
+            ]  
 
--- getFileContent :: String -> IO ()
--- getFileContent fileName = do
---     file <- openFile fileName ReadMode
---     content <- hGetContents file
---     print content
-    -- hClose file
-
--- dispatch :: [(String, [String] -> IO ())]  
--- dispatch =  [ ("add", add)  
---             , ("view", view)  
---             , ("remove", remove)  
---             ]  
-
-
-add :: String -> String -> IO ()  
-add fileName todoItem = appendFile fileName (todoItem ++ "\n")  
-
-
-view :: String -> IO ()  
-view fileName = do  
-        contents <- readFile fileName  
-        let todoTasks = lines contents  
-            numberedTasks = zipWith (\n line -> show n ++ " - " ++ line) [0..] todoTasks  
-        putStr $ unlines numberedTasks  
-
-
-remove :: String -> Int -> IO ()  
-remove fileName numberString = do  
+filters :: [(String, [String] -> String)]  
+filters =  [ ("asciiFilter", asciiFilter)  
+            , ("numberOrDelimeterFilter", numberOrDelimeterFilter)  
+            ]  
+   
+main = do  
+    (command:args) <- getArgs  
+    let (Just action) = lookup command dispatch  
+    action args  
+  
+add :: [String] -> IO ()  
+add [fileName, todoItem] = appendFile fileName (todoItem ++ "\n")  
+  
+view :: [String] -> IO ()  
+view [fileName] = do  
+    contents <- readFile fileName  
+    let todoTasks = lines contents  
+        numberedTasks = zipWith (\n line -> show n ++ " - " ++ line) [0..] todoTasks  
+    putStr $ unlines numberedTasks  
+  
+remove :: [String] -> IO ()  
+remove [fileName, numberString] = do  
     handle <- openFile fileName ReadMode  
     (tempName, tempHandle) <- openTempFile "." "temp"  
     contents <- hGetContents handle  
-    let todoTasks = lines contents  
-        newTodoItems = delete (todoTasks !! numberString) todoTasks  
+    let number = read numberString  
+        todoTasks = lines contents  
+        newTodoItems = delete (todoTasks !! number) todoTasks  
     hPutStr tempHandle $ unlines newTodoItems  
     hClose handle  
     hClose tempHandle  
     removeFile fileName  
-    renameFile tempName fileName  
- 
+    renameFile tempName fileName
 
-main = do
-    --remove "in.txt" 15
-    view "in.txt"
+asciiFilter :: [ String ] -> String
+asciiFilter [ str ] = filter isAscii str
 
+numberOrDelimeterFilter :: [ String ] -> String
+numberOrDelimeterFilter [ str ] = filter (liftM2 (||)(isDigit)(\x -> any (x==) ['-','.',','])) str
 
--- main = do
---     putStrLn "Hello, choose the action: "
---     putStrLn "1) print file content"
---     putStrLn "2) append existing file"
---     putStrLn "3) delete a certain line"
---     putStrLn "4) copy file with filter"
---     putStrLn "Input the number of action: "
---     action <- getChar
---     if isDigit action then putStrLn "success" else putStrLn "fail"
+copyWithFilter :: [String] -> IO ()
+copyWithFilter [inputFile, outputFile, filterName] = do
+    s <- readFile inputFile
+    let (Just action) = lookup filterName filters  
+    writeFile outputFile (action [ s ])
